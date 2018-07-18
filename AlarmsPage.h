@@ -1,5 +1,5 @@
-#ifndef AlarmPage_h
-#define AlarmPage_h
+#ifndef AlarmsPage_h
+#define AlarmsPage_h
 
 #include "LinkedList.h"
 #include "CallbackController.h"
@@ -11,14 +11,17 @@
 #include "PushButtonController.h"
 #include "LCDController.h"
 
-class AlarmPage : public Page {
+class AlarmsPage : public Page {
+  private:
+    CallbackController* mOnAlarmRunCallbackController;
+
   public:
     LinkedList<Alarm*>* mAlarmList;
     int mSelectedAlarmIndex = 0;
     int mStartAlarmIndex = 0;
     Alarm* mSelectedAlarm;
 
-    void applyChangesOnIndexes();
+    void applyChangesOnIndexesAndPrint();
 
     int mIsEditing = false;
     bool mHourEditing = false;
@@ -26,8 +29,8 @@ class AlarmPage : public Page {
     bool mOneTimeModeEditing = false;
     bool mBuzzerModeEditing = false;
 
-    AlarmPage(PageChangeFunction*);
-    ~AlarmPage();
+    AlarmsPage(PageChangeFunction*);
+    ~AlarmsPage();
     void start();
     void stop();
     void onEnable();
@@ -41,117 +44,129 @@ class AlarmPage : public Page {
     void printAll();
 };
 
-AlarmPage* _alarmPage;
+AlarmsPage* _alarmsPage;
 
-void _alarmPageOnButton1HIGH() {
-  _alarmPage->down();
+void _alarmsPageOnButton1HIGH() {
+  _alarmsPage->down();
 }
 
-void _alarmPageOnButton2HIGH() {
-  _alarmPage->up();
+void _alarmsPageOnButton2HIGH() {
+  _alarmsPage->up();
 }
 
-void _alarmPageOnButton1HIGHWhenEditing() {
-  if (_alarmPage->mSelectedAlarm != NULL) {
-    if (_alarmPage->mHourEditing) {
-      _alarmPage->mSelectedAlarm->increaseHour();
+void _alarmsPageOnButton1HIGHWhenEditing() {
+  if (_alarmsPage->mSelectedAlarm != NULL) {
+    if (_alarmsPage->mHourEditing) {
+      _alarmsPage->mSelectedAlarm->increaseHour();
     }
-    else if (_alarmPage->mMinuteEditing) {
-      _alarmPage->mSelectedAlarm->increaseMinute();
+    else if (_alarmsPage->mMinuteEditing) {
+      _alarmsPage->mSelectedAlarm->increaseMinute();
     }
-    else if (_alarmPage->mOneTimeModeEditing) {
-      _alarmPage->mSelectedAlarm->setOneTime(true);
+    else if (_alarmsPage->mOneTimeModeEditing) {
+      _alarmsPage->mSelectedAlarm->setOneTime(false);
     }
-    else if (_alarmPage->mBuzzerModeEditing) {
-      _alarmPage->mSelectedAlarm->setBuzzerMode(_alarmPage->mSelectedAlarm->getBuzzerMode() + 1);
+    else if (_alarmsPage->mBuzzerModeEditing) {
+      _alarmsPage->mSelectedAlarm->setBuzzerMode(_alarmsPage->mSelectedAlarm->getBuzzerMode() + 1);
     }
 
-    _alarmPage->printAll();
+    _alarmsPage->printAll();
   }
 }
 
-void _alarmPageOnButton2HIGHWhenEditing() {
-  if (_alarmPage->mSelectedAlarm != NULL) {
-    if (_alarmPage->mHourEditing) {
-      _alarmPage->mSelectedAlarm->decreaseHour();
+void _alarmsPageOnButton2HIGHWhenEditing() {
+  if (_alarmsPage->mSelectedAlarm != NULL) {
+    if (_alarmsPage->mHourEditing) {
+      _alarmsPage->mSelectedAlarm->decreaseHour();
     }
-    else if (_alarmPage->mMinuteEditing) {
-      _alarmPage->mSelectedAlarm->decreaseMinute();
+    else if (_alarmsPage->mMinuteEditing) {
+      _alarmsPage->mSelectedAlarm->decreaseMinute();
     }
-    else if (_alarmPage->mOneTimeModeEditing) {
-      _alarmPage->mSelectedAlarm->setOneTime(false);
+    else if (_alarmsPage->mOneTimeModeEditing) {
+      _alarmsPage->mSelectedAlarm->setOneTime(true);
     }
-    else if (_alarmPage->mBuzzerModeEditing) {
-      _alarmPage->mSelectedAlarm->setBuzzerMode(_alarmPage->mSelectedAlarm->getBuzzerMode() - 1);
+    else if (_alarmsPage->mBuzzerModeEditing) {
+      _alarmsPage->mSelectedAlarm->setBuzzerMode(_alarmsPage->mSelectedAlarm->getBuzzerMode() - 1);
     }
 
-    _alarmPage->printAll();
+    _alarmsPage->printAll();
   }
 }
 
-void _alarmPageOnButton4HIGHWhenEditing() {
-  if (_alarmPage->mSelectedAlarm != NULL) {
-    TimeController::removeAlarm(_alarmPage->mSelectedAlarm); // has auto short
+void _alarmsPageOnButton4HIGHWhenEditing() {
+  if (_alarmsPage->mSelectedAlarm != NULL) {
+    TimeController::removeAlarm(_alarmsPage->mSelectedAlarm); // has auto sort
 
-    delete _alarmPage->mSelectedAlarm;
+    delete _alarmsPage->mSelectedAlarm;
 
-    _alarmPage->mSelectedAlarmIndex = 0;
-    _alarmPage->stopEditing();
-    _alarmPage->applyChangesOnIndexes();
+    _alarmsPage->mSelectedAlarmIndex = 0;
+    _alarmsPage->stopEditing();
+    _alarmsPage->applyChangesOnIndexesAndPrint();
   }
 }
 
-void _alarmPageOnButton3HIGH() {
-  _alarmPage->toggleEditing();
+void _alarmsPageOnButton3HIGH() {
+  _alarmsPage->toggleEditing();
 }
 
-void _alarmPageOnButton4HIGH() {
-  TimeController::createAndAddAlarm(hour(), minute(), true, 0); // has auto short
+void _alarmsPageOnButton4HIGH() {
+  TimeController::createAndAddAlarm(hour(), minute(), true, 0); // has auto sort
 
-  _alarmPage->mSelectedAlarmIndex = 0;
-  _alarmPage->applyChangesOnIndexes();
-
-  _alarmPage->printAll();
+  _alarmsPage->mSelectedAlarmIndex = 0;
+  _alarmsPage->applyChangesOnIndexesAndPrint();
 }
 
-void _alarmPageOnButton5HIGH() {
-  _alarmPage->changePage(1);
+void _alarmsPageOnButton5HIGH() {
+  _alarmsPage->changePage(1);
 }
 
-AlarmPage::AlarmPage(PageChangeFunction* pageChangeFunction) : Page(pageChangeFunction) {
-  _alarmPage = this;
+void _alarmsPageOnAlarmRun() {
+  _alarmsPage->mSelectedAlarmIndex = 0;
+  _alarmsPage->applyChangesOnIndexesAndPrint();
+}
+
+AlarmsPage::AlarmsPage(PageChangeFunction* pageChangeFunction) : Page(pageChangeFunction) {
+  _alarmsPage = this;
 
   this->mAlarmList = TimeController::getAlarmList();
   this->mSelectedAlarm = this->mAlarmList->get(0);
 
-  PushButtonController::setListener(_alarmPageOnButton3HIGH, 3);
-  PushButtonController::setListener(_alarmPageOnButton5HIGH, 5);
+  this->mOnAlarmRunCallbackController = TimeController::createAndAddOnAlarmRunCallbackController(_alarmsPageOnAlarmRun);
+
+  PushButtonController::setListener(_alarmsPageOnButton3HIGH, 3);
+  PushButtonController::setListener(_alarmsPageOnButton5HIGH, 5);
   this->stopEditing();
 
   this->start();
 }
 
-AlarmPage::~AlarmPage() {
+AlarmsPage::~AlarmsPage() {
   this->stop();
-  _alarmPage = NULL;
+  _alarmsPage = NULL;
+
+  TimeController::removeOnAlarmRunCallbackController(this->mOnAlarmRunCallbackController);
+
+  delete this->mOnAlarmRunCallbackController;
 }
 
-void AlarmPage::start() {
+void AlarmsPage::start() {
+  this->mOnAlarmRunCallbackController->enable();
+
   this->printAll();
 }
 
-void AlarmPage::stop() {
+void AlarmsPage::stop() {
+  this->mOnAlarmRunCallbackController->disable();
 }
 
-void AlarmPage::onEnable() {
+void AlarmsPage::onEnable() {
   this->start();
 }
 
-void AlarmPage::onDisable() {
+void AlarmsPage::onDisable() {
   this->stop();
 }
 
-void AlarmPage::printAlarms() {
+void AlarmsPage::printAlarms() {
   String s1 = "";
   String s2 = "";
   String s3 = "";
@@ -178,10 +193,13 @@ void AlarmPage::printAlarms() {
   LCDController::writeFourAlarms(s1, s2, s3, s4, this->mSelectedAlarmIndex, this->mIsEditing);
 }
 
-void AlarmPage::applyChangesOnIndexes() {
+void AlarmsPage::applyChangesOnIndexesAndPrint() {
   if (this->mSelectedAlarmIndex > 3) {
     this->mSelectedAlarmIndex = 3;
     this->mStartAlarmIndex++;
+  }
+  else if (this->mSelectedAlarmIndex > this->mAlarmList->size() - 1) {
+    this->mSelectedAlarmIndex = this->mAlarmList->size() - 1;
   }
   else if (this->mSelectedAlarmIndex < 0) {
     this->mSelectedAlarmIndex = 0;
@@ -189,6 +207,9 @@ void AlarmPage::applyChangesOnIndexes() {
   }
 
   if (this->mStartAlarmIndex < 0) {
+    this->mStartAlarmIndex = 0;
+  }
+  else if (this->mAlarmList->size() <= 4) {
     this->mStartAlarmIndex = 0;
   }
   else if (this->mAlarmList->size() > 4 && this->mStartAlarmIndex > this->mAlarmList->size() - 4) {
@@ -205,17 +226,17 @@ void AlarmPage::applyChangesOnIndexes() {
   this->printAll();
 }
 
-void AlarmPage::up() {
+void AlarmsPage::up() {
   this->mSelectedAlarmIndex++;
-  this->applyChangesOnIndexes();
+  this->applyChangesOnIndexesAndPrint();
 }
 
-void AlarmPage::down() {
+void AlarmsPage::down() {
   this->mSelectedAlarmIndex--;
-  this->applyChangesOnIndexes();
+  this->applyChangesOnIndexesAndPrint();
 }
 
-void AlarmPage::toggleEditing() {
+void AlarmsPage::toggleEditing() {
   if (this->mIsEditing && this->mBuzzerModeEditing) {
     this->stopEditing();
   }
@@ -248,7 +269,7 @@ void AlarmPage::toggleEditing() {
   }
 }
 
-void AlarmPage::startEditing() {
+void AlarmsPage::startEditing() {
   this->mIsEditing = true;
 
   this->mHourEditing = true;
@@ -258,14 +279,14 @@ void AlarmPage::startEditing() {
 
   LCDController::writeEditingMode("EDIT: H");
 
-  PushButtonController::setListener(_alarmPageOnButton1HIGHWhenEditing, 1);
-  PushButtonController::setListener(_alarmPageOnButton2HIGHWhenEditing, 2);
-  PushButtonController::setListener(_alarmPageOnButton4HIGHWhenEditing, 4);
+  PushButtonController::setListener(_alarmsPageOnButton1HIGHWhenEditing, 1);
+  PushButtonController::setListener(_alarmsPageOnButton2HIGHWhenEditing, 2);
+  PushButtonController::setListener(_alarmsPageOnButton4HIGHWhenEditing, 4);
 
   this->printAll();
 }
 
-void AlarmPage::stopEditing() {
+void AlarmsPage::stopEditing() {
   this->mIsEditing = false;
 
   this->mHourEditing = false;
@@ -275,23 +296,23 @@ void AlarmPage::stopEditing() {
 
   LCDController::writeEditingMode("       ");
 
-  PushButtonController::setListener(_alarmPageOnButton1HIGH, 1);
-  PushButtonController::setListener(_alarmPageOnButton2HIGH, 2);
-  PushButtonController::setListener(_alarmPageOnButton4HIGH, 4);
+  PushButtonController::setListener(_alarmsPageOnButton1HIGH, 1);
+  PushButtonController::setListener(_alarmsPageOnButton2HIGH, 2);
+  PushButtonController::setListener(_alarmsPageOnButton4HIGH, 4);
 
   TimeController::sortAlarmList();
 
-  AlarmPage::applyChangesOnIndexes();
+  AlarmsPage::applyChangesOnIndexesAndPrint();
 
   this->printAll();
 }
 
-void AlarmPage::printAll() {
+void AlarmsPage::printAll() {
   if (this->mSelectedAlarm != NULL) {
     LCDController::writeSelectedAlarm(this->mSelectedAlarm->getAsText(), this->mSelectedAlarm->getOneTime(), this->mSelectedAlarm->getBuzzerMode());
   }
   else {
-    LCDController::writeSelectedAlarm("     ", true, 0);
+    LCDController::writeSelectedAlarm("No Alarm", true, -1);
   }
 
   this->printAlarms();

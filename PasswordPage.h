@@ -16,6 +16,8 @@
 
 class PasswordPage : public Page {
   public:
+    const static int PASSWORD_LENGTH PROGMEM = 4;
+
     String mPassword = "";
 
     PasswordPage(PageChangeFunction*);
@@ -30,7 +32,7 @@ class PasswordPage : public Page {
 PasswordPage* _passwordPage;
 
 void _passwordPageRefreshPasswordOnScreen() {
-  LCDController::typePassword(_passwordPage->mPassword.length(), 6 - _passwordPage->mPassword.length());
+  LCDController::typePassword(_passwordPage->mPassword.length(), PasswordPage::PASSWORD_LENGTH - _passwordPage->mPassword.length());
 }
 
 void _passwordPagePasswordCheck() {
@@ -45,8 +47,8 @@ void _passwordPagePasswordCheck() {
 }
 
 void _passwordPagePasswordOnType() {
-  if (_passwordPage->mPassword.length() > 6) {
-    _passwordPage->mPassword = _passwordPage->mPassword.substring(6);
+  if (_passwordPage->mPassword.length() > PasswordPage::PASSWORD_LENGTH) {
+    _passwordPage->mPassword = _passwordPage->mPassword.substring(PasswordPage::PASSWORD_LENGTH);
   }
 
   _passwordPageRefreshPasswordOnScreen();

@@ -1,7 +1,6 @@
 #ifndef Page_h
 #define Page_h
 
-
 typedef void (PageChangeFunction) (int);
 
 class Page {
@@ -9,6 +8,11 @@ class Page {
     PageChangeFunction* mPageChangeFunction;
 
   public:
+    const static int PASSWORD_PAGE PROGMEM = 0;
+    const static int MAIN_PAGE PROGMEM = 1;
+    const static int ALARMS_PAGE PROGMEM = 2;
+    const static int SETTINGS_PAGE PROGMEM = 3;
+
     Page(PageChangeFunction*);
     ~Page();
     void start();

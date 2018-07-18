@@ -14,10 +14,6 @@
 #include "PasswordController.h"
 #include "PageController.h"
 
-#include "PasswordPage.h"
-#include "MainPage.h"
-#include "AlarmPage.h"
-
 void onSwitchHIGH() {
   LCDController::enable();
   PageController::changePage(0);
@@ -59,6 +55,7 @@ void setup() {
   TimeController::createAndAddAlarm(14, 10, true, 0);
   TimeController::createAndAddAlarm(14, 20, true, 0);
   TimeController::createAndAddAlarm(15, 40, true, 0);
+  TimeController::createAndAddAlarm(15, 50, true, 0);
 
   PushButtonController::setListener(onSwitchHIGH, onSwitchLOW, 0);
   PushButtonController::update();

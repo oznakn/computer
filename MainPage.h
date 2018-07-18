@@ -15,7 +15,7 @@ const float MAX_MEMORY PROGMEM = 8192;
 
 class MainPage : public Page {
   private:
-    const String MENU_OPTIONS PROGMEM = "1\x3\x1";
+    const String MENU_OPTIONS PROGMEM = "1\x3\x1 2\x3S";
 
     CallbackController* mSecondTimeChangedCallbackController;
     CallbackController* mMinuteTimeChangedCallbackController;
@@ -32,9 +32,15 @@ class MainPage : public Page {
 
 MainPage* _mainPage;
 
+int _mainPageOnSecondTimeCounter = 0;
+
 void _mainPageOnSecondTimeChanged() {
   LCDController::writeTime(TimeController::getTimeText());
-  LCDController::writeMemoryUsage((int) (((MAX_MEMORY - freeMemory()) / MAX_MEMORY) * 100));
+
+  if (_mainPageOnSecondTimeCounter == 0) {
+    LCDController::writeMemoryUsage((int) (((MAX_MEMORY - freeMemory()) / MAX_MEMORY) * 100));
+  }
+  _mainPageOnSecondTimeCounter = (_mainPageOnSecondTimeCounter + 1) % 3;
 }
 
 void _mainPageOnMinutetimeChanged() {
@@ -52,11 +58,7 @@ void _mainPageOnButton1HIGH() {
 }
 
 void _mainPageOnButton2HIGH() {
-  LedAndBuzzerController::setBuzzer(LedAndBuzzerController::BUZZER_ON);
-}
-
-void _mainPageOnButton2LOW() {
-  LedAndBuzzerController::setBuzzer(LedAndBuzzerController::BUZZER_OFF);
+  _mainPage->changePage(3);
 }
 
 void _mainPageOnButton3HIGH() {
@@ -79,7 +81,7 @@ MainPage::MainPage(PageChangeFunction* pageChangeFunction) : Page(pageChangeFunc
   this->mOnAlarmRunCallbackController = TimeController::createAndAddOnAlarmRunCallbackController(_mainPageOnAlarmRun);
 
   PushButtonController::setListener(_mainPageOnButton1HIGH, 1);
-  PushButtonController::setListener(_mainPageOnButton2HIGH, _mainPageOnButton2LOW, 2);
+  PushButtonController::setListener(_mainPageOnButton2HIGH, 2);
   PushButtonController::setListener(_mainPageOnButton3HIGH, _mainPageOnButton3LOW, 3);
   PushButtonController::removeListener(4);
   PushButtonController::setListener(_mainPageOnButton5HIGH, 5);
@@ -105,7 +107,6 @@ void MainPage::start() {
   this->mMinuteTimeChangedCallbackController->enable();
   this->mOnAlarmRunCallbackController->enable();
 
-  Serial.println("selam");
   LCDController::writeMenuOptionsToBottom(MENU_OPTIONS);
 
   TimeController::postInit();

@@ -4,11 +4,9 @@
 #include "CallbackController.h"
 #include "LinkedList.h"
 
-// #include "LedAndBuzzerController.h"
-
 typedef void (AlarmHandler) (int);
 
-String timePropToText(int value) {
+String _alarmTimePropToText(int value) {
   String text = String(value);
 
   if (value < 10) {
@@ -103,11 +101,11 @@ bool Alarm::runIfNeccesary(int hour, int minute) {
 }
 
 String Alarm::getHourAsText() {
-  return timePropToText(this->getHour());
+  return _alarmTimePropToText(this->getHour());
 }
 
 String Alarm::getMinuteAsText() {
-  return timePropToText(this->getMinute());
+  return _alarmTimePropToText(this->getMinute());
 }
 
 String Alarm::getAsText() {
@@ -147,7 +145,7 @@ bool Alarm::getOneTime() {
 }
 
 void Alarm::setBuzzerMode(int buzzerMode) {
-  this->mBuzzerMode = (buzzerMode % 4); // 4 is total buzzer Mode count
+  this->mBuzzerMode = ((buzzerMode + 4) % 4); // 4 is total buzzer Mode count
 }
 
 int Alarm::getBuzzerMode() {

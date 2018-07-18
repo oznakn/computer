@@ -242,7 +242,7 @@ void LCDController::writeMenuOptionsToBottom(String s) {
 
 void LCDController::writeEditingMode(String s) {
   if (LCDController::getIsEnabled()) {
-    LCDController::lcd->setCursor(10, 2);
+    LCDController::lcd->setCursor(11, 2);
     LCDController::lcd->print(s);
   }
 }
@@ -254,6 +254,7 @@ void LCDController::writeNextAlarm(Alarm* alarm) {
     LCDController::lcd->setCursor(0, 2);
     LCDController::lcd->print(String(TimeController::getAlarmCount()));
     LCDController::lcd->write(byte(LCDController::CLOCK_CHAR_CODE));
+    LCDController::lcd->write(byte(LCDController::RIGHT_ARROW_CHAR_CODE));
 
     if (alarm != NULL) {
       LCDController::lcd->print(alarm->getAsText());
@@ -266,7 +267,7 @@ void LCDController::writeNextAlarm(Alarm* alarm) {
 
 void LCDController::writeSelectedAlarm(String alarm, bool oneTime, int buzzerMode) {
   if (LCDController::getIsEnabled()) {
-    LCDController::lcd->setCursor(10, 1);
+    LCDController::lcd->setCursor(11, 1);
     LCDController::lcd->print(alarm + " ");
 
     switch (buzzerMode) {
@@ -277,10 +278,10 @@ void LCDController::writeSelectedAlarm(String alarm, bool oneTime, int buzzerMod
     }
 
     if (oneTime) {
-      LCDController::lcd->print("  ");
+      LCDController::lcd->print(" ");
     }
     else {
-      LCDController::lcd->print(" *");
+      LCDController::lcd->print("*");
     }
   }
 }
@@ -360,14 +361,14 @@ void LCDController::startPasswordScreen() {
     LCDController::drawMiddle(1, 8, false);
     LCDController::lcd->print("Password");
 
-    LCDController::drawMiddle(2, 6, false);
-    LCDController::lcd->print("______");
+    LCDController::drawMiddle(2, 4, false);
+    LCDController::lcd->print("____"); // TODO
   }
 }
 
 void LCDController::typePassword(int starCount, int blankCount) {
   if (LCDController::getIsEnabled()) {
-    LCDController::drawMiddle(2, 6, false);
+    LCDController::drawMiddle(2, 4, false);
 
     String s = "";
     for (int i = 0; i < starCount; i++) {

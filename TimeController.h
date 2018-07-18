@@ -9,13 +9,13 @@
 #include "CallbackController.h"
 #include "Alarm.h"
 
-void waitForSerial() {
+void _timeControllerWaitForSerial() {
   while (!Serial.available()) {
 
   }
 }
 
-int compareAlarms(Alarm** pAlarm1, Alarm** pAlarm2) {
+int _timeControllerCompareAlarms(Alarm** pAlarm1, Alarm** pAlarm2) {
   uint32_t value1, value2;
   Alarm* alarm1 = (*pAlarm1);
   Alarm* alarm2 = (*pAlarm2);
@@ -24,6 +24,16 @@ int compareAlarms(Alarm** pAlarm1, Alarm** pAlarm2) {
   value2 = (alarm2->getHour() * 60) + alarm2->getMinute();
 
   return value1 > value2 ? 1 : -1;
+}
+
+String _timeControllerTimePropToText(int value) {
+  String text = String(value);
+
+  if (value < 10) {
+    text = "0" + text;
+  }
+
+  return text;
 }
 
 class TimeController {
@@ -189,7 +199,7 @@ Alarm* TimeController::getNextAlarm() {
     for (int i = 0; i < TimeController::alarmList->size(); i++) {
       Alarm* alarm = TimeController::alarmList->get(i);
 
-      if (alarm->getHour() >= _hour || (alarm->getHour() == _hour && alarm->getMinute() >= _minute)) {
+      if (alarm->getHour() > _hour || (alarm->getHour() == _hour && alarm->getMinute() >= _minute)) {
         return alarm;
       }
     }
@@ -205,7 +215,7 @@ LinkedList<Alarm*>* TimeController::getAlarmList() {
 }
 
 void TimeController::sortAlarmList() {
-  TimeController::alarmList->sort(compareAlarms);
+  TimeController::alarmList->sort(_timeControllerCompareAlarms);
 }
 
 int TimeController::getAlarmCount() {
@@ -214,23 +224,23 @@ int TimeController::getAlarmCount() {
 
 void TimeController::fetchTime() {
   Serial.println("Enter Year");
-  waitForSerial();
+  _timeControllerWaitForSerial();
   int year = Serial.readString().toInt();
 
   Serial.println("Enter Month");
-  waitForSerial();
+  _timeControllerWaitForSerial();
   int month = Serial.readString().toInt();
 
   Serial.println("Enter Day");
-  waitForSerial();
+  _timeControllerWaitForSerial();
   int day = Serial.readString().toInt();
 
   Serial.println("Enter Hour");
-  waitForSerial();
+  _timeControllerWaitForSerial();
   int hour = Serial.readString().toInt();
 
   Serial.println("Enter Minute");
-  waitForSerial();
+  _timeControllerWaitForSerial();
   int minute = Serial.readString().toInt();
 
   setTime(hour , minute , 0 , day , month , year);
@@ -245,11 +255,11 @@ String TimeController::getFullTimeText(bool cropYear) {
 }
 
 String TimeController::getTimeText() {
-  return timePropToText(hour()) + ":" + timePropToText(minute()) + ":" + timePropToText(second());
+  return _timeControllerTimePropToText(hour()) + ":" + _timeControllerTimePropToText(minute()) + ":" + _timeControllerTimePropToText(second());
 }
 
 String TimeController::getDateText(bool cropYear) {
-  String text = timePropToText(day()) + "." + timePropToText(month()) + ".";
+  String text = _timeControllerTimePropToText(day()) + "." + _timeControllerTimePropToText(month()) + ".";
 
   if (cropYear) text += String(year()).substring(2, 4);
   else text += year();
