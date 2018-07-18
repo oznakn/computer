@@ -30,7 +30,7 @@ class TimeController {
   private:
     static LinkedList<CallbackController*>* perSecondCallbackControllerList;
     static LinkedList<CallbackController*>* perMinuteCallbackControllerList;
-    static LinkedList<CallbackController*>* alarmRunListenerList;
+    static LinkedList<CallbackController*>* onAlarmRunCallbackControllerList;
     static LinkedList<Alarm*>* alarmList;
     static Timer* timer;
 
@@ -42,9 +42,12 @@ class TimeController {
     static void init();
     static void postInit();
     static void update();
-    static CallbackController* createAndAddSecondListener(CallbackListener*);
-    static CallbackController* createAndAddMinuteListener(CallbackListener*);
-    static CallbackController* createAndAddAlarmRunListener(CallbackListener*);
+    static CallbackController* createAndAddSecondCallbackController(CallbackListener*);
+    static void removeSecondCallbackController(CallbackController*);
+    static CallbackController* createAndAddMinuteCallbackController(CallbackListener*);
+    static void removeMinuteCallbackController(CallbackController*);
+    static CallbackController* createAndAddOnAlarmRunCallbackController(CallbackListener*);
+    static void removeOnAlarmRunCallbackController(CallbackController*);
     static void addAlarm(Alarm*);
     static Alarm* createAndAddAlarm(CallbackListener*, int, int, bool = true);
     static Alarm* getNextAlarm();
@@ -63,7 +66,7 @@ class TimeController {
 Timer * TimeController::timer = new Timer();
 LinkedList<CallbackController*> * TimeController::perSecondCallbackControllerList = new LinkedList<CallbackController*>;
 LinkedList<CallbackController*> * TimeController::perMinuteCallbackControllerList = new LinkedList<CallbackController*>;
-LinkedList<CallbackController*> * TimeController::alarmRunListenerList = new LinkedList<CallbackController*>;
+LinkedList<CallbackController*> * TimeController::onAlarmRunCallbackControllerList = new LinkedList<CallbackController*>;
 LinkedList<Alarm*> * TimeController::alarmList = new LinkedList<Alarm*>;
 
 void TimeController::init() {
@@ -118,36 +121,48 @@ void TimeController::perMinuteTimerCallback() {
     }
   }
 
-  for (int i = 0; i < TimeController::alarmRunListenerList->size(); i++) {
-    TimeController::alarmRunListenerList->get(i)->runIfEnabled();
+  for (int i = 0; i < TimeController::onAlarmRunCallbackControllerList->size(); i++) {
+    TimeController::onAlarmRunCallbackControllerList->get(i)->runIfEnabled();
   }
 }
 
-CallbackController* TimeController::createAndAddSecondListener(CallbackListener * callback) {
+CallbackController* TimeController::createAndAddSecondCallbackController(CallbackListener * callback) {
   CallbackController * listener = new CallbackController(callback);
-  listener->disable();
 
   TimeController::perSecondCallbackControllerList->add(listener);
+  listener->setIndex(TimeController::perSecondCallbackControllerList->size() - 1);
 
   return listener;
 }
 
-CallbackController* TimeController::createAndAddMinuteListener(CallbackListener * callback) {
+void TimeController::removeSecondCallbackController(CallbackController* callbackController) {
+  callbackController->removeFromList(TimeController::perSecondCallbackControllerList);
+}
+
+CallbackController* TimeController::createAndAddMinuteCallbackController(CallbackListener * callback) {
   CallbackController * listener = new CallbackController(callback);
-  listener->disable();
 
   TimeController::perMinuteCallbackControllerList->add(listener);
+  listener->setIndex(TimeController::perMinuteCallbackControllerList->size() - 1);
 
   return listener;
 }
 
-CallbackController* TimeController::createAndAddAlarmRunListener(CallbackListener * callback) {
-  CallbackController * listener = new CallbackController(callback);
-  listener->disable();
+void TimeController::removeMinuteCallbackController(CallbackController* callbackController) {
+  callbackController->removeFromList(TimeController::perMinuteCallbackControllerList);
+}
 
-  TimeController::alarmRunListenerList->add(listener);
+CallbackController* TimeController::createAndAddOnAlarmRunCallbackController(CallbackListener * callback) {
+  CallbackController * listener = new CallbackController(callback);
+
+  TimeController::onAlarmRunCallbackControllerList->add(listener);
+  listener->setIndex(TimeController::onAlarmRunCallbackControllerList->size() - 1);
 
   return listener;
+}
+
+void TimeController::removeOnAlarmRunCallbackController(CallbackController* callbackController) {
+  callbackController->removeFromList(TimeController::onAlarmRunCallbackControllerList);
 }
 
 void TimeController::addAlarm(Alarm* alarm) {

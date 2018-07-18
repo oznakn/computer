@@ -20,11 +20,11 @@
 
 void onSwitchHIGH() {
   LCDController::enable();
+  PageController::changePage(0);
 }
 
 void onSwitchLOW() {
   LCDController::disable();
-  LCDController::lock();
 }
 
 void setup() {
@@ -51,9 +51,10 @@ void setup() {
   TimeController::createAndAddAlarm(LedAndBuzzerController::blinkGreenLed, 15, 30);
   TimeController::createAndAddAlarm(LedAndBuzzerController::blinkGreenLed, 15, 40);
 
-  PageController::postInit();
-
   PushButtonController::setListener(onSwitchHIGH, onSwitchLOW, 0);
+  PushButtonController::update();
+
+  PageController::postInit();
 }
 
 void loop() {

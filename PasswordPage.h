@@ -14,44 +14,61 @@
 
 #include "Page.h"
 
-String _passwordPagePassword = "";
+class PasswordPage : public Page {
+  public:
+    String mPassword = "";
+
+    PasswordPage(PageChangeFunction*);
+    ~PasswordPage();
+    void apply();
+    void start();
+    void stop();
+    void onEnable();
+    void onDisable();
+};
+
+PasswordPage* _passwordPage;
 
 void _passwordPageRefreshPasswordOnScreen() {
-  LCDController::typePassword(_passwordPagePassword.length(), 6 - _passwordPagePassword.length());
+  LCDController::typePassword(_passwordPage->mPassword.length(), 6 - _passwordPage->mPassword.length());
 }
 
 void _passwordPagePasswordCheck() {
-  PasswordController::tryPassword(_passwordPagePassword);
-  _passwordPagePassword = "";
+  if (PasswordController::tryPassword(_passwordPage->mPassword)) {
+    _passwordPage->changePage(1);
+  }
+  else {
+    _passwordPage->mPassword = "";
 
-  _passwordPageRefreshPasswordOnScreen();
+    _passwordPageRefreshPasswordOnScreen();
+  }
 }
 
 void _passwordPagePasswordOnType() {
-  if (_passwordPagePassword.length() > 6) {
-    _passwordPagePassword = _passwordPagePassword.substring(6);
+  if (_passwordPage->mPassword.length() > 6) {
+    _passwordPage->mPassword = _passwordPage->mPassword.substring(6);
   }
 
   _passwordPageRefreshPasswordOnScreen();
 }
 
 void _passwordPagePasswordOnButton1() {
-  _passwordPagePassword += "A";
+  _passwordPage->mPassword += "A";
   _passwordPagePasswordOnType();
 }
 
 void _passwordPagePasswordOnButton2() {
-  _passwordPagePassword += "B";
+  _passwordPage->mPassword += "B";
   _passwordPagePasswordOnType();
 }
 
 void _passwordPagePasswordOnButton3() {
-  _passwordPagePassword += "C";
+  _passwordPage->mPassword += "C";
   _passwordPagePasswordOnType();
 }
 
 void _passwordPagePasswordOnButton4() {
-  _passwordPagePassword += "D";
+  _passwordPage->mPassword += "D";
   _passwordPagePasswordOnType();
 }
 
@@ -59,23 +76,9 @@ void _passwordPagePasswordOnButton5() {
   _passwordPagePasswordCheck();
 }
 
-class PasswordPage : public Page {
-  public:
-    void init(PageChangeFunction*);
-    void apply();
-    void start();
-    void stop();
-    void onEnable();
-    void onDisable();
-    void onLock();
-    void onUnlock();
-};
+PasswordPage::PasswordPage(PageChangeFunction* pageChangeFunction) : Page(pageChangeFunction) {
+  _passwordPage = this;
 
-void PasswordPage::init(PageChangeFunction* pageChangeFunction) {
-  Page::init(pageChangeFunction);
-}
-
-void PasswordPage::apply() {
   PushButtonController::setListener(_passwordPagePasswordOnButton1, NULL, 1);
   PushButtonController::setListener(_passwordPagePasswordOnButton2, NULL, 2);
   PushButtonController::setListener(_passwordPagePasswordOnButton3, NULL, 3);
@@ -85,9 +88,13 @@ void PasswordPage::apply() {
   this->start();
 }
 
+PasswordPage::~PasswordPage() {
+  this->stop();
+  _passwordPage = NULL;
+}
+
 void PasswordPage::start() {
   LCDController::startPasswordScreen();
-  Serial.println("onPasswordPageStarted");
 }
 
 void PasswordPage::stop() {
@@ -99,14 +106,6 @@ void PasswordPage::onEnable() {
 }
 
 void PasswordPage::onDisable() {
-
-}
-
-void PasswordPage::onLock() {
-
-}
-
-void PasswordPage::onUnlock() {
 
 }
 

@@ -8,45 +8,50 @@
 
 int _pageControllerActivePageIndex = -1;
 
-MainPage* _pageControllerMainPage;
-PasswordPage* _pageControllerPasswordPage;
-AlarmPage* _pageControllerAlarmPage;
+MainPage* _pageControllerMainPage = NULL;
+PasswordPage* _pageControllerPasswordPage = NULL;
+AlarmPage* _pageControllerAlarmPage = NULL;
 
 void _pageControllerChangePage(int pageIndex) {
-  switch (_pageControllerActivePageIndex) {
-    case 0:
-      _pageControllerPasswordPage->stop();
-      break;
+  if (_pageControllerActivePageIndex != pageIndex) {
+    switch (_pageControllerActivePageIndex) {
+      case 0:
+        delete _pageControllerPasswordPage;
+        _pageControllerPasswordPage = NULL;
+        break;
 
-    case 1:
-      _pageControllerMainPage->stop();
-      break;
+      case 1:
+        delete _pageControllerMainPage;
+        _pageControllerMainPage = NULL;
+        break;
 
-    case 2:
-      _pageControllerAlarmPage->stop();
-      break;
-  }
+      case 2:
+        delete _pageControllerAlarmPage;
+        _pageControllerAlarmPage = NULL;
+        break;
+    }
 
-  _pageControllerActivePageIndex = pageIndex;
+    LCDController::clear();
 
-  LCDController::clear();
+    _pageControllerActivePageIndex = pageIndex;
 
-  switch (_pageControllerActivePageIndex) {
-    case 0:
-      _pageControllerPasswordPage->apply();
-      break;
+    switch (_pageControllerActivePageIndex) {
+      case 0:
+        _pageControllerPasswordPage = new PasswordPage(_pageControllerChangePage);
+        break;
 
-    case 1:
-      _pageControllerMainPage->apply();
-      break;
+      case 1:
+        _pageControllerMainPage = new MainPage(_pageControllerChangePage);
+        break;
 
-    case 2:
-      _pageControllerAlarmPage->apply();
-      break;
+      case 2:
+        _pageControllerAlarmPage = new AlarmPage(_pageControllerChangePage);
+        break;
+    }
   }
 }
 
-void _pageControllerOnEnableStateChange(bool isEnabled, bool isLocked) {
+void _pageControllerOnEnableStateChange(bool isEnabled) {
   if (isEnabled) {
     switch (_pageControllerActivePageIndex) {
       case 0:
@@ -79,48 +84,13 @@ void _pageControllerOnEnableStateChange(bool isEnabled, bool isLocked) {
   }
 }
 
-void _pageControllerOnLockStateChange(bool isEnabled, bool isLocked) {
-  if (isLocked) {
-    switch (_pageControllerActivePageIndex) {
-      case 0:
-        _pageControllerPasswordPage->onLock();
-        break;
-
-      case 1:
-        _pageControllerMainPage->onLock();
-        break;
-
-      case 2:
-        _pageControllerAlarmPage->onLock();
-        break;
-    }
-
-    _pageControllerChangePage(0);
-  }
-  else {
-    switch (_pageControllerActivePageIndex) {
-      case 0:
-        _pageControllerPasswordPage->onUnlock();
-        break;
-
-      case 1:
-        _pageControllerMainPage->onUnlock();
-        break;
-
-      case 2:
-        _pageControllerAlarmPage->onUnlock();
-        break;
-    }
-
-    _pageControllerChangePage(1);
-  }
-}
-
 class PageController {
   public:
     static void init();
     static void update();
+    static void lock();
     static void postInit();
+    static void changePage(int);
 };
 
 void PageController::init() {
@@ -131,19 +101,18 @@ void PageController::update() {
 
 }
 
+void PageController::lock() {
+  PageController::changePage(0);
+}
+
 void PageController::postInit() {
-  _pageControllerMainPage = new MainPage;
-  _pageControllerPasswordPage = new PasswordPage;
-  _pageControllerAlarmPage = new AlarmPage;
-
-  _pageControllerMainPage->init(_pageControllerChangePage);
-  _pageControllerPasswordPage->init(_pageControllerChangePage);
-  _pageControllerAlarmPage->init(_pageControllerChangePage);
-
-  _pageControllerChangePage(0);
+  PageController::lock();
 
   LCDController::setOnEnableStateChangeListener(_pageControllerOnEnableStateChange);
-  LCDController::setOnLockStateChangeListener(_pageControllerOnLockStateChange);
+}
+
+void PageController::changePage(int pageIndex) {
+  _pageControllerChangePage(pageIndex);
 }
 
 #endif

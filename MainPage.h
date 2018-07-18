@@ -1,7 +1,7 @@
 #ifndef MainPage_h
 #define MainPage_h
 
-// #include "MemoryFree.h"
+#include "MemoryFree.h"
 
 #include "TimeController.h"
 #include "LCDController.h"
@@ -11,6 +11,7 @@
 
 #include "Page.h"
 
+const float MAX_MEMORY PROGMEM = 8192;
 
 class MainPage : public Page {
   private:
@@ -19,21 +20,19 @@ class MainPage : public Page {
     CallbackController* mOnAlarmRunCallbackController;
 
   public:
-    void init(PageChangeFunction*);
-    void apply();
+    MainPage(PageChangeFunction*);
+    ~MainPage();
     void start();
     void stop();
     void onEnable();
     void onDisable();
-    void onLock();
-    void onUnlock();
 };
 
 MainPage* _mainPage;
 
 void _mainPageOnSecondTimeChanged() {
   LCDController::writeTime(TimeController::getTimeText());
-  // Serial.println(freeMemory());
+  LCDController::writeMemoryUsage((int) (((MAX_MEMORY - freeMemory()) / MAX_MEMORY) * 100));
 }
 
 void _mainPageOnMinutetimeChanged() {
@@ -75,19 +74,16 @@ void _mainPageOnButton4HIGH() {
 }
 
 void _mainPageOnButton5HIGH() {
-  LCDController::lock();
+  _mainPage->changePage(0);
 }
 
-void MainPage::init(PageChangeFunction* pageChangeFunction) {
-  Page::init(pageChangeFunction);
+MainPage::MainPage(PageChangeFunction* pageChangeFunction) : Page(pageChangeFunction) {
   _mainPage = this;
 
-  this->mSecondTimeChangedCallbackController = TimeController::createAndAddSecondListener(_mainPageOnSecondTimeChanged);
-  this->mMinuteTimeChangedCallbackController = TimeController::createAndAddMinuteListener(_mainPageOnMinutetimeChanged);
-  this->mOnAlarmRunCallbackController = TimeController::createAndAddAlarmRunListener(_mainPageOnAlarmRun);
-}
+  this->mSecondTimeChangedCallbackController = TimeController::createAndAddSecondCallbackController(_mainPageOnSecondTimeChanged);
+  this->mMinuteTimeChangedCallbackController = TimeController::createAndAddMinuteCallbackController(_mainPageOnMinutetimeChanged);
+  this->mOnAlarmRunCallbackController = TimeController::createAndAddOnAlarmRunCallbackController(_mainPageOnAlarmRun);
 
-void MainPage::apply() {
   PushButtonController::setListener(_mainPageOnButton1HIGH, _mainPageOnButton1LOW, 1);
   PushButtonController::setListener(_mainPageOnButton2HIGH, _mainPageOnButton2LOW, 2);
   PushButtonController::setListener(_mainPageOnButton3HIGH, _mainPageOnButton3LOW, 3);
@@ -97,9 +93,20 @@ void MainPage::apply() {
   this->start();
 }
 
-void MainPage::start() {
-  Serial.println("onMainPageStarted");
+MainPage::~MainPage() {
+  this->stop();
+  _mainPage = NULL;
 
+  TimeController::removeSecondCallbackController(this->mSecondTimeChangedCallbackController);
+  TimeController::removeMinuteCallbackController(this->mMinuteTimeChangedCallbackController);
+  TimeController::removeOnAlarmRunCallbackController(this->mOnAlarmRunCallbackController);
+
+  delete this->mSecondTimeChangedCallbackController;
+  delete this->mMinuteTimeChangedCallbackController;
+  delete this->mOnAlarmRunCallbackController;
+}
+
+void MainPage::start() {
   this->mSecondTimeChangedCallbackController->enable();
   this->mMinuteTimeChangedCallbackController->enable();
   this->mOnAlarmRunCallbackController->enable();
@@ -119,14 +126,6 @@ void MainPage::onEnable() {
 
 void MainPage::onDisable() {
   this->stop();
-}
-
-void MainPage::onLock() {
-  this->stop();
-}
-
-void MainPage::onUnlock() {
-  this->start();
 }
 
 #endif

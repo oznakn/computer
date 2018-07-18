@@ -17,14 +17,12 @@ class AlarmPage : public Page {
     void applyChangesOnIndexes();
 
   public:
-    void init(PageChangeFunction*);
-    void apply();
+    AlarmPage(PageChangeFunction*);
+    ~AlarmPage();
     void start();
     void stop();
     void onEnable();
     void onDisable();
-    void onLock();
-    void onUnlock();
     void up();
     void down();
 };
@@ -43,14 +41,11 @@ void _alarmPageOnButton5HIGH() {
   _alarmPage->changePage(1);
 }
 
-void AlarmPage::init(PageChangeFunction* pageChangeFunction) {
-  Page::init(pageChangeFunction);
+AlarmPage::AlarmPage(PageChangeFunction* pageChangeFunction) : Page(pageChangeFunction) {
   _alarmPage = this;
 
   this->mAlarmList = TimeController::getAlarmList();
-}
 
-void AlarmPage::apply() {
   PushButtonController::removeListener(1);
   PushButtonController::removeListener(4);
   PushButtonController::setListener(_alarmPageOnButton2HIGH, NULL, 2);
@@ -58,6 +53,11 @@ void AlarmPage::apply() {
   PushButtonController::setListener(_alarmPageOnButton5HIGH, NULL, 5);
 
   this->start();
+}
+
+AlarmPage::~AlarmPage() {
+  this->stop();
+  _alarmPage = NULL;
 }
 
 void AlarmPage::start() {
@@ -72,14 +72,6 @@ void AlarmPage::onEnable() {
 }
 
 void AlarmPage::onDisable() {
-
-}
-
-void AlarmPage::onLock() {
-
-}
-
-void AlarmPage::onUnlock() {
 
 }
 

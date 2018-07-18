@@ -2,10 +2,12 @@
 #define CallbackController_h
 
 #include "CallbackListener.h"
+#include "LinkedList.h"
 
 class CallbackController {
   private:
     int mIsEnabled = true;
+    int mIndex = -1;
     String mData = "";
     CallbackListener * mCallbackListener;
 
@@ -16,12 +18,16 @@ class CallbackController {
     CallbackController(CallbackListener *, String);
     void enable();
     void disable();
-    boolean isEnabled();
     CallbackListener* getCallbackListener();
+    void setIndex(int);
+    int getIndex();
+    void setData(String);
+    String getData();
+    void removeFromList(LinkedList<CallbackController*>*);
+    boolean isEnabled();
     void run();
     void runIfEnabledAndData(String);
     void runIfEnabled();
-    String getData();
 };
 
 CallbackController::CallbackController(CallbackListener * callback) {
@@ -38,6 +44,7 @@ CallbackController::CallbackController(CallbackListener * callback, String data)
 }
 
 void CallbackController::init() {
+
 }
 
 void CallbackController::enable() {
@@ -48,12 +55,35 @@ void CallbackController::disable() {
   this->mIsEnabled = false;
 }
 
+
+void CallbackController::setIndex(int index) {
+  this->mIndex = index;
+}
+
+int CallbackController::getIndex() {
+  return this->mIndex;
+}
+
+void CallbackController::setData(String data) {
+  this->mData = data;
+}
+
+String CallbackController::getData() {
+  return this->mData;
+}
+
 bool CallbackController::isEnabled() {
   return this->mIsEnabled;
 }
 
 CallbackListener* CallbackController::getCallbackListener() {
   return this->mCallbackListener;
+}
+
+void CallbackController::removeFromList(LinkedList<CallbackController*>* list) {
+  if (this->mIndex != -1) {
+    list->remove(this->mIndex);
+  }
 }
 
 void CallbackController::run() {
@@ -70,10 +100,6 @@ void CallbackController::runIfEnabledAndData(String data) {
   if (this->isEnabled() && this->mData.equals(data)) {
     this->run();
   }
-}
-
-String CallbackController::getData() {
-  return this->mData;
 }
 
 #endif

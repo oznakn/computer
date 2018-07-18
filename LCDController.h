@@ -34,6 +34,16 @@ byte doneChar[8] = {
   B00000,
 };
 
+byte dropChar[8] = {
+  B00000,
+  B00100,
+  B01010,
+  B10001,
+  B10001,
+  B10001,
+  B01110,
+};
+
 byte rightArrowChar[8] = {
   B00000,
   B00100,
@@ -44,7 +54,7 @@ byte rightArrowChar[8] = {
   B00000,
 };
 
-typedef void (StateChangeListener) (bool, bool);
+typedef void (StateChangeListener) (bool);
 
 class LCDController {
   private:
@@ -63,12 +73,11 @@ class LCDController {
     const static int CLOCK_CHAR_CODE PROGMEM = 1;
     const static int DONE_CHAR_CODE PROGMEM = 2;
     const static int RIGHT_ARROW_CHAR_CODE PROGMEM = 3;
+    const static int DROP_CHAR_CODE PROGMEM = 4;
 
-    static bool isEnabled; // button
-    static bool isLocked;
+    static bool isEnabled; // switch button
     static LiquidCrystal * lcd;
     static StateChangeListener* onEnableStateChangeListener;
-    static StateChangeListener* onLockStateChangeListener;
 
     static int getMiddleCount(int);
     static void drawMiddle(int, int, bool = true);
@@ -83,25 +92,21 @@ class LCDController {
     static void writeDate(String, int);
     static void writeHumidity(float);
     static void writeTemperature(float);
+    static void writeMemoryUsage(int);
     static void writeNextAlarm(Alarm*);
     static void writeFourAlarms(Alarm*, Alarm*, Alarm*, Alarm*, int);
     static void enableLed();
     static void disableLed();
     static void enable();
-    static void disable(bool = true);
-    static void lock();
-    static void unlock();
-    static bool getIsAvailable();
+    static void disable();
+    static bool getIsEnabled();
     static void startPasswordScreen();
     static void typePassword(int, int);
     static void setOnEnableStateChangeListener(StateChangeListener*);
-    static void setOnLockStateChangeListener(StateChangeListener*);
 };
 
 bool LCDController::isEnabled = true;
-bool LCDController::isLocked = false;
 StateChangeListener* LCDController::onEnableStateChangeListener = NULL;
-StateChangeListener* LCDController::onLockStateChangeListener = NULL;
 LiquidCrystal * LCDController::lcd = new LiquidCrystal(LCDController::LCD_RS_PIN, LCDController::LCD_ENABLE_PIN, LCDController::LCD_D4_PIN, LCDController::LCD_D5_PIN, LCDController::LCD_D6_PIN, LCDController::LCD_D7_PIN);
 
 void LCDController::init() {
@@ -113,9 +118,9 @@ void LCDController::init() {
   LCDController::lcd->createChar(LCDController::CLOCK_CHAR_CODE, clockChar);
   LCDController::lcd->createChar(LCDController::DONE_CHAR_CODE, doneChar);
   LCDController::lcd->createChar(LCDController::RIGHT_ARROW_CHAR_CODE, rightArrowChar);
+  LCDController::lcd->createChar(LCDController::DROP_CHAR_CODE, dropChar);
 
   LCDController::enable();
-  LCDController::lock();
 }
 
 void LCDController::update() {
@@ -184,14 +189,14 @@ String LCDController::getDayOfWeekText(int dayOfWeek) {
 }
 
 void LCDController::writeTime(String text) {
-  if (LCDController::getIsAvailable()) {
+  if (LCDController::getIsEnabled()) {
     LCDController::lcd->setCursor(12, 0);
     LCDController::lcd->print(text);
   }
 }
 
 void LCDController::writeDate(String text, int dayOfWeek) {
-  if (LCDController::getIsAvailable()) {
+  if (LCDController::getIsEnabled()) {
     LCDController::lcd->setCursor(0, 0);
     LCDController::lcd->print(text);
     LCDController::lcd->print(" ");
@@ -200,7 +205,7 @@ void LCDController::writeDate(String text, int dayOfWeek) {
 }
 
 void LCDController::writeTemperature(float temperature) {
-  if (LCDController::getIsAvailable()) {
+  if (LCDController::getIsEnabled()) {
     LCDController::lcd->setCursor(0, 1);
     LCDController::lcd->print(String(temperature));
     LCDController::lcd->write(byte(LCDController::DEGREE_CHAR_CODE));
@@ -209,9 +214,19 @@ void LCDController::writeTemperature(float temperature) {
 }
 
 void LCDController::writeHumidity(float humidity) {
-  if (LCDController::getIsAvailable()) {
-    LCDController::lcd->setCursor(14, 1);
+  if (LCDController::getIsEnabled()) {
+    LCDController::lcd->setCursor(13, 1);
+    LCDController::lcd->write(byte(LCDController::DROP_CHAR_CODE));
     LCDController::lcd->print(String(humidity));
+    LCDController::lcd->print("%");
+  }
+}
+
+void LCDController::writeMemoryUsage(int memoryUsage) {
+  if (LCDController::getIsEnabled()) {
+    LCDController::lcd->setCursor(15, 2);
+    LCDController::lcd->print("M:");
+    LCDController::lcd->print(String(memoryUsage));
     LCDController::lcd->print("%");
   }
 }
@@ -226,10 +241,10 @@ void LCDController::printArrowIfAlarmSelected(int index, int selectedIndex) {
 }
 
 void LCDController::writeNextAlarm(Alarm* alarm) {
-  if (LCDController::getIsAvailable()) {
-    LCDController::lcd->setCursor(0, 3);
+  if (LCDController::getIsEnabled()) {
+    LCDController::lcd->setCursor(0, 2);
     LCDController::lcd->print("          ");
-    LCDController::lcd->setCursor(0, 3);
+    LCDController::lcd->setCursor(0, 2);
     LCDController::lcd->write(byte(LCDController::CLOCK_CHAR_CODE));
 
     if (alarm != NULL) {
@@ -245,7 +260,7 @@ void LCDController::writeNextAlarm(Alarm* alarm) {
 }
 
 void LCDController::writeFourAlarms(Alarm* alarm1, Alarm* alarm2, Alarm* alarm3, Alarm* alarm4, int selectedIndex) {
-  if (LCDController::getIsAvailable()) {
+  if (LCDController::getIsEnabled()) {
     if (alarm1 != NULL) {
       LCDController::lcd->setCursor(0, 0);
       LCDController::printArrowIfAlarmSelected(0, selectedIndex);
@@ -287,47 +302,26 @@ void LCDController::enable() {
   LCDController::enableLed();
 
   if (LCDController::onEnableStateChangeListener != NULL) {
-    (*LCDController::onEnableStateChangeListener)(LCDController::isEnabled, LCDController::isLocked);
+    (*LCDController::onEnableStateChangeListener)(LCDController::isEnabled);
   }
 }
 
-void LCDController::disable(bool disableLed) {
+void LCDController::disable() {
   LCDController::isEnabled = false;
   LCDController::lcd->clear();
-
-  if (disableLed) {
-    LCDController::disableLed();
-  }
+  LCDController::disableLed();
 
   if (LCDController::onEnableStateChangeListener != NULL) {
-    (*LCDController::onEnableStateChangeListener)(LCDController::isEnabled, LCDController::isLocked);
+    (*LCDController::onEnableStateChangeListener)(LCDController::isEnabled);
   }
 }
 
-void LCDController::lock() {
-  LCDController::isLocked = true;
-  LCDController::lcd->clear();
-
-  if (LCDController::onLockStateChangeListener != NULL) {
-    (*LCDController::onLockStateChangeListener)(LCDController::isEnabled, LCDController::isLocked);
-  }
-}
-
-void LCDController::unlock() {
-  LCDController::isLocked = false;
-  LCDController::lcd->clear();
-
-  if (LCDController::onLockStateChangeListener != NULL) {
-    (*LCDController::onLockStateChangeListener)(LCDController::isEnabled, LCDController::isLocked);
-  }
-}
-
-bool LCDController::getIsAvailable() {
-  return LCDController::isEnabled && !LCDController::isLocked;
+bool LCDController::getIsEnabled() {
+  return LCDController::isEnabled;
 }
 
 void LCDController::startPasswordScreen() {
-  if (LCDController::isEnabled && LCDController::isLocked) {
+  if (LCDController::getIsEnabled()) {
     LCDController::lcd->clear();
 
     LCDController::drawMiddle(1, 8, false);
@@ -339,7 +333,7 @@ void LCDController::startPasswordScreen() {
 }
 
 void LCDController::typePassword(int starCount, int blankCount) {
-  if (LCDController::isEnabled && LCDController::isLocked) {
+  if (LCDController::getIsEnabled()) {
     LCDController::drawMiddle(2, 6, false);
 
     String s = "";
@@ -356,10 +350,6 @@ void LCDController::typePassword(int starCount, int blankCount) {
 
 void LCDController::setOnEnableStateChangeListener(StateChangeListener* onEnableStateChangeListener) {
   LCDController::onEnableStateChangeListener = onEnableStateChangeListener;
-}
-
-void LCDController::setOnLockStateChangeListener(StateChangeListener* onLockStateChangeListener) {
-  LCDController::onLockStateChangeListener = onLockStateChangeListener;
 }
 
 #endif

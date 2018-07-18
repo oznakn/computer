@@ -22,9 +22,7 @@ void PasswordController::update() {
 }
 
 bool PasswordController::tryPassword(String password) {
-  if (password.equals(FileController::password)) {
-    LCDController::unlock();
-
+  if (true || password.equals(FileController::password)) {
     return true;
   }
 
