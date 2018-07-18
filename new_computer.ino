@@ -27,10 +27,25 @@ void onSwitchLOW() {
   LCDController::disable();
 }
 
+void alarmHandler(int buzzerMode) {
+  LedAndBuzzerController::blinkRedLed();
+  LedAndBuzzerController::blinkGreenLed();
+  LedAndBuzzerController::blinkBlueLed();
+
+  /* switch (buzzerMode) {
+    case 0: LedAndBuzzerController::blinkBuzzer(); break;
+    case 1: LedAndBuzzerController::startShortBuzzer(); break;
+    case 2: LedAndBuzzerController::startMediumBuzzer(); break;
+    case 3: LedAndBuzzerController::startLongBuzzer(); break;
+  } */
+}
+
 void setup() {
   if (!FileController::init()) {
     while(true);
   }
+
+  Alarm::setAlarmHandler(alarmHandler);
 
   SerialController::init();
   TimeController::init();
@@ -41,15 +56,9 @@ void setup() {
   TemperatureController::init();
   PageController::init();
 
-  TimeController::createAndAddAlarm(LedAndBuzzerController::blinkGreenLed, 14, 10);
-  TimeController::createAndAddAlarm(LedAndBuzzerController::blinkGreenLed, 14, 20);
-  TimeController::createAndAddAlarm(LedAndBuzzerController::blinkGreenLed, 14, 30);
-  TimeController::createAndAddAlarm(LedAndBuzzerController::blinkGreenLed, 14, 40);
-  TimeController::createAndAddAlarm(LedAndBuzzerController::blinkGreenLed, 14, 50);
-  TimeController::createAndAddAlarm(LedAndBuzzerController::blinkGreenLed, 15, 10);
-  TimeController::createAndAddAlarm(LedAndBuzzerController::blinkGreenLed, 15, 20);
-  TimeController::createAndAddAlarm(LedAndBuzzerController::blinkGreenLed, 15, 30);
-  TimeController::createAndAddAlarm(LedAndBuzzerController::blinkGreenLed, 15, 40);
+  TimeController::createAndAddAlarm(14, 10, true, 0);
+  TimeController::createAndAddAlarm(14, 20, true, 0);
+  TimeController::createAndAddAlarm(15, 40, true, 0);
 
   PushButtonController::setListener(onSwitchHIGH, onSwitchLOW, 0);
   PushButtonController::update();

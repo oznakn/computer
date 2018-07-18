@@ -3,7 +3,6 @@
 
 #include <LiquidCrystal.h>
 
-
 byte degreeChar[8] = {
   B01110,
   B01010,
@@ -69,12 +68,6 @@ class LCDController {
     const static int LCD_D6_PIN PROGMEM = 42;
     const static int LCD_D7_PIN PROGMEM = 43;
 
-    const static int DEGREE_CHAR_CODE PROGMEM = 0;
-    const static int CLOCK_CHAR_CODE PROGMEM = 1;
-    const static int DONE_CHAR_CODE PROGMEM = 2;
-    const static int RIGHT_ARROW_CHAR_CODE PROGMEM = 3;
-    const static int DROP_CHAR_CODE PROGMEM = 4;
-
     static bool isEnabled; // switch button
     static LiquidCrystal * lcd;
     static StateChangeListener* onEnableStateChangeListener;
@@ -82,9 +75,14 @@ class LCDController {
     static int getMiddleCount(int);
     static void drawMiddle(int, int, bool = true);
     static String getDayOfWeekText(int);
-    static void printArrowIfAlarmSelected(int, int);
 
   public:
+    const static int DEGREE_CHAR_CODE PROGMEM = 0;
+    const static int CLOCK_CHAR_CODE PROGMEM = 1;
+    const static int DONE_CHAR_CODE PROGMEM = 2;
+    const static int RIGHT_ARROW_CHAR_CODE PROGMEM = 3;
+    const static int DROP_CHAR_CODE PROGMEM = 4;
+
     static void init();
     static void update();
     static void clear();
@@ -94,7 +92,11 @@ class LCDController {
     static void writeTemperature(float);
     static void writeMemoryUsage(int);
     static void writeNextAlarm(Alarm*);
-    static void writeFourAlarms(Alarm*, Alarm*, Alarm*, Alarm*, int);
+    static void writeMenuOptionsToBottom(String);
+    static void writeEditingMode(String);
+    static void writeSelectedAlarm(String, bool, int);
+    static void writeAlarmListItem(String, int, int, bool);
+    static void writeFourAlarms(String, String, String, String, int, bool);
     static void enableLed();
     static void disableLed();
     static void enable();
@@ -231,12 +233,17 @@ void LCDController::writeMemoryUsage(int memoryUsage) {
   }
 }
 
-void LCDController::printArrowIfAlarmSelected(int index, int selectedIndex) {
-  if (index == selectedIndex) {
-    LCDController::lcd->write(byte(RIGHT_ARROW_CHAR_CODE));
+void LCDController::writeMenuOptionsToBottom(String s) {
+  if (LCDController::getIsEnabled()) {
+    LCDController::lcd->setCursor(0, 3);
+    LCDController::lcd->print(s);
   }
-  else {
-    LCDController::lcd->print(" ");
+}
+
+void LCDController::writeEditingMode(String s) {
+  if (LCDController::getIsEnabled()) {
+    LCDController::lcd->setCursor(10, 2);
+    LCDController::lcd->print(s);
   }
 }
 
@@ -245,6 +252,7 @@ void LCDController::writeNextAlarm(Alarm* alarm) {
     LCDController::lcd->setCursor(0, 2);
     LCDController::lcd->print("          ");
     LCDController::lcd->setCursor(0, 2);
+    LCDController::lcd->print(String(TimeController::getAlarmCount()));
     LCDController::lcd->write(byte(LCDController::CLOCK_CHAR_CODE));
 
     if (alarm != NULL) {
@@ -253,37 +261,62 @@ void LCDController::writeNextAlarm(Alarm* alarm) {
     else {
       LCDController::lcd->write(byte(LCDController::DONE_CHAR_CODE));
     }
-
-    LCDController::lcd->write(byte(LCDController::RIGHT_ARROW_CHAR_CODE));
-    LCDController::lcd->print(String(TimeController::getAlarmCount()));
   }
 }
 
-void LCDController::writeFourAlarms(Alarm* alarm1, Alarm* alarm2, Alarm* alarm3, Alarm* alarm4, int selectedIndex) {
+void LCDController::writeSelectedAlarm(String alarm, bool oneTime, int buzzerMode) {
   if (LCDController::getIsEnabled()) {
-    if (alarm1 != NULL) {
-      LCDController::lcd->setCursor(0, 0);
-      LCDController::printArrowIfAlarmSelected(0, selectedIndex);
-      LCDController::lcd->print(alarm1->getAsText());
+    LCDController::lcd->setCursor(10, 1);
+    LCDController::lcd->print(alarm + " ");
 
-      if (alarm2 != NULL) {
-          LCDController::lcd->setCursor(0, 1);
-          LCDController::printArrowIfAlarmSelected(1, selectedIndex);
-          LCDController::lcd->print(alarm2->getAsText());
+    switch (buzzerMode) {
+      case 0: LCDController::lcd->print('B'); break;
+      case 1: LCDController::lcd->print('S'); break;
+      case 2: LCDController::lcd->print('M'); break;
+      case 3: LCDController::lcd->print('L'); break;
+    }
 
-        if (alarm3 != NULL) {
-            LCDController::lcd->setCursor(0, 2);
-            LCDController::printArrowIfAlarmSelected(2, selectedIndex);
-            LCDController::lcd->print(alarm3->getAsText());
+    if (oneTime) {
+      LCDController::lcd->print("  ");
+    }
+    else {
+      LCDController::lcd->print(" *");
+    }
+  }
+}
 
-         if (alarm4 != NULL) {
-            LCDController::lcd->setCursor(0, 3);
-            LCDController::printArrowIfAlarmSelected(3, selectedIndex);
-            LCDController::lcd->print(alarm4->getAsText());
-          }
-        }
+void LCDController::writeAlarmListItem(String alarmText, int index, int selectedIndex, bool isEditing) {
+  if (!alarmText.equals("")) {
+    if (index == selectedIndex) {
+      LCDController::lcd->write(byte(RIGHT_ARROW_CHAR_CODE));
+      if (isEditing) {
+        LCDController::lcd->print(" ");
       }
     }
+    else {
+      LCDController::lcd->print(" ");
+    }
+
+    LCDController::lcd->print(alarmText + " "); // blank for removing digit when editing
+  }
+  else {
+    LCDController::lcd->print("          ");
+  }
+}
+
+void LCDController::writeFourAlarms(String alarm1, String alarm2, String alarm3, String alarm4, int selectedIndex, bool isEditing) {
+  if (LCDController::getIsEnabled()) {
+    LCDController::lcd->setCursor(0, 0);
+    LCDController::writeAlarmListItem(alarm1, 0, selectedIndex, isEditing);
+
+    LCDController::lcd->setCursor(0, 1);
+    LCDController::writeAlarmListItem(alarm2, 1, selectedIndex, isEditing);
+
+    LCDController::lcd->setCursor(0, 2);
+    LCDController::writeAlarmListItem(alarm3, 2, selectedIndex, isEditing);
+
+    LCDController::lcd->setCursor(0, 3);
+    LCDController::writeAlarmListItem(alarm4, 3, selectedIndex, isEditing);
   }
 }
 

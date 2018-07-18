@@ -36,7 +36,6 @@ class TimeController {
 
     static void perSecondTimerCallback();
     static void perMinuteTimerCallback();
-    static void sortAlarmList();
 
   public:
     static void init();
@@ -49,7 +48,8 @@ class TimeController {
     static CallbackController* createAndAddOnAlarmRunCallbackController(CallbackListener*);
     static void removeOnAlarmRunCallbackController(CallbackController*);
     static void addAlarm(Alarm*);
-    static Alarm* createAndAddAlarm(CallbackListener*, int, int, bool = true);
+    static void removeAlarm(Alarm*);
+    static Alarm* createAndAddAlarm(int, int, bool, int);
     static Alarm* getNextAlarm();
     static LinkedList<Alarm*>* getAlarmList();
     static int getAlarmCount();
@@ -61,6 +61,7 @@ class TimeController {
     static String getTimeText();
     static String getDateText(bool = false);
     static uint8_t getDayOfWeek();
+    static void sortAlarmList();
 };
 
 Timer * TimeController::timer = new Timer();
@@ -130,7 +131,6 @@ CallbackController* TimeController::createAndAddSecondCallbackController(Callbac
   CallbackController * listener = new CallbackController(callback);
 
   TimeController::perSecondCallbackControllerList->add(listener);
-  listener->setIndex(TimeController::perSecondCallbackControllerList->size() - 1);
 
   return listener;
 }
@@ -143,7 +143,6 @@ CallbackController* TimeController::createAndAddMinuteCallbackController(Callbac
   CallbackController * listener = new CallbackController(callback);
 
   TimeController::perMinuteCallbackControllerList->add(listener);
-  listener->setIndex(TimeController::perMinuteCallbackControllerList->size() - 1);
 
   return listener;
 }
@@ -156,7 +155,6 @@ CallbackController* TimeController::createAndAddOnAlarmRunCallbackController(Cal
   CallbackController * listener = new CallbackController(callback);
 
   TimeController::onAlarmRunCallbackControllerList->add(listener);
-  listener->setIndex(TimeController::onAlarmRunCallbackControllerList->size() - 1);
 
   return listener;
 }
@@ -170,8 +168,13 @@ void TimeController::addAlarm(Alarm* alarm) {
   TimeController::sortAlarmList();
 }
 
-Alarm* TimeController::createAndAddAlarm(CallbackListener* callbackListener, int hour, int minute, bool oneTime) {
-  Alarm * alarm = new Alarm(callbackListener, hour, minute, oneTime);
+void TimeController::removeAlarm(Alarm* alarm) {
+  alarm->removeFromList(TimeController::alarmList);
+  TimeController::sortAlarmList();
+}
+
+Alarm* TimeController::createAndAddAlarm(int hour, int minute, bool oneTime, int buzzerMode) {
+  Alarm * alarm = new Alarm(hour, minute, oneTime, buzzerMode);
 
   TimeController::addAlarm(alarm);
 
@@ -186,7 +189,7 @@ Alarm* TimeController::getNextAlarm() {
     for (int i = 0; i < TimeController::alarmList->size(); i++) {
       Alarm* alarm = TimeController::alarmList->get(i);
 
-      if (alarm->getHour() >= _hour && alarm->getMinute() >= _minute) {
+      if (alarm->getHour() >= _hour || (alarm->getHour() == _hour && alarm->getMinute() >= _minute)) {
         return alarm;
       }
     }

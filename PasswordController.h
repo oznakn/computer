@@ -22,7 +22,7 @@ void PasswordController::update() {
 }
 
 bool PasswordController::tryPassword(String password) {
-  if (true || password.equals(FileController::password)) {
+  if (password.equals(FileController::password)) {
     return true;
   }
 

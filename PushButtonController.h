@@ -38,6 +38,7 @@ class PushButtonController {
   public:
     static void init();
     static void update();
+    static void setListener(CallbackListener*, int);
     static void setListener(CallbackListener*, CallbackListener*, int);
     static void removeListener(int);
 };
@@ -181,6 +182,9 @@ void PushButtonController::update() {
   }
 }
 
+void PushButtonController::setListener(CallbackListener* callback, int button) {
+  PushButtonController::setListener(callback, NULL, button);
+}
 
 void PushButtonController::setListener(CallbackListener* callbackHIGH, CallbackListener* callbackLOW, int button) {
   switch (button) {

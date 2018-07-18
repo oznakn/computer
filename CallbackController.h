@@ -4,23 +4,28 @@
 #include "CallbackListener.h"
 #include "LinkedList.h"
 
+int _callbackControllerId = 0;
+
+int _callbackControllerIdCreator() {
+  return ++_callbackControllerId;
+}
+
 class CallbackController {
   private:
     int mIsEnabled = true;
-    int mIndex = -1;
     String mData = "";
     CallbackListener * mCallbackListener;
 
     void init();
 
   public:
+    int mIndex = _callbackControllerIdCreator();
+
     CallbackController(CallbackListener *);
     CallbackController(CallbackListener *, String);
     void enable();
     void disable();
     CallbackListener* getCallbackListener();
-    void setIndex(int);
-    int getIndex();
     void setData(String);
     String getData();
     void removeFromList(LinkedList<CallbackController*>*);
@@ -55,15 +60,6 @@ void CallbackController::disable() {
   this->mIsEnabled = false;
 }
 
-
-void CallbackController::setIndex(int index) {
-  this->mIndex = index;
-}
-
-int CallbackController::getIndex() {
-  return this->mIndex;
-}
-
 void CallbackController::setData(String data) {
   this->mData = data;
 }
@@ -81,8 +77,11 @@ CallbackListener* CallbackController::getCallbackListener() {
 }
 
 void CallbackController::removeFromList(LinkedList<CallbackController*>* list) {
-  if (this->mIndex != -1) {
-    list->remove(this->mIndex);
+  for (int i = 0; i < list->size(); i++) {
+    if (list->get(i)->mIndex == this->mIndex) {
+      list->remove(i);
+      break;
+    }
   }
 }
 

@@ -15,6 +15,8 @@ const float MAX_MEMORY PROGMEM = 8192;
 
 class MainPage : public Page {
   private:
+    const String MENU_OPTIONS PROGMEM = "1\x3\x1";
+
     CallbackController* mSecondTimeChangedCallbackController;
     CallbackController* mMinuteTimeChangedCallbackController;
     CallbackController* mOnAlarmRunCallbackController;
@@ -46,19 +48,15 @@ void _mainPageOnAlarmRun() {
 }
 
 void _mainPageOnButton1HIGH() {
-  LedAndBuzzerController::setBuzzer(LedAndBuzzerController::BUZZER_ON);
-}
-
-void _mainPageOnButton1LOW() {
-  LedAndBuzzerController::setBuzzer(LedAndBuzzerController::BUZZER_OFF);
+  _mainPage->changePage(2);
 }
 
 void _mainPageOnButton2HIGH() {
-  LedAndBuzzerController::setBlueLed(LedAndBuzzerController::LED_ON);
+  LedAndBuzzerController::setBuzzer(LedAndBuzzerController::BUZZER_ON);
 }
 
 void _mainPageOnButton2LOW() {
-  LedAndBuzzerController::setBlueLed(LedAndBuzzerController::LED_OFF);
+  LedAndBuzzerController::setBuzzer(LedAndBuzzerController::BUZZER_OFF);
 }
 
 void _mainPageOnButton3HIGH() {
@@ -67,10 +65,6 @@ void _mainPageOnButton3HIGH() {
 
 void _mainPageOnButton3LOW() {
   LedAndBuzzerController::setGreenLed(LedAndBuzzerController::LED_OFF);
-}
-
-void _mainPageOnButton4HIGH() {
-  _mainPage->changePage(2);
 }
 
 void _mainPageOnButton5HIGH() {
@@ -84,11 +78,11 @@ MainPage::MainPage(PageChangeFunction* pageChangeFunction) : Page(pageChangeFunc
   this->mMinuteTimeChangedCallbackController = TimeController::createAndAddMinuteCallbackController(_mainPageOnMinutetimeChanged);
   this->mOnAlarmRunCallbackController = TimeController::createAndAddOnAlarmRunCallbackController(_mainPageOnAlarmRun);
 
-  PushButtonController::setListener(_mainPageOnButton1HIGH, _mainPageOnButton1LOW, 1);
+  PushButtonController::setListener(_mainPageOnButton1HIGH, 1);
   PushButtonController::setListener(_mainPageOnButton2HIGH, _mainPageOnButton2LOW, 2);
   PushButtonController::setListener(_mainPageOnButton3HIGH, _mainPageOnButton3LOW, 3);
-  PushButtonController::setListener(_mainPageOnButton4HIGH, NULL, 4);
-  PushButtonController::setListener(_mainPageOnButton5HIGH, NULL, 5);
+  PushButtonController::removeListener(4);
+  PushButtonController::setListener(_mainPageOnButton5HIGH, 5);
 
   this->start();
 }
@@ -110,6 +104,9 @@ void MainPage::start() {
   this->mSecondTimeChangedCallbackController->enable();
   this->mMinuteTimeChangedCallbackController->enable();
   this->mOnAlarmRunCallbackController->enable();
+
+  Serial.println("selam");
+  LCDController::writeMenuOptionsToBottom(MENU_OPTIONS);
 
   TimeController::postInit();
 }
