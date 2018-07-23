@@ -32,10 +32,7 @@ class Alarm {
 
   public:
     static AlarmHandler* alarmHandler;
-
     static void setAlarmHandler(AlarmHandler*);
-
-    int mIndex = _alarmIdCreator();
 
     Alarm(int, int, bool, int);
     int getHour();
@@ -54,6 +51,8 @@ class Alarm {
     void setBuzzerMode(int);
     int getBuzzerMode();
     void removeFromList(LinkedList<Alarm*>*);
+
+    int mIndex = _alarmIdCreator();
 };
 
 AlarmHandler* Alarm::alarmHandler = NULL;

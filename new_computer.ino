@@ -37,14 +37,15 @@ void alarmHandler(int buzzerMode) {
 }
 
 void setup() {
+  SerialController::init();
+  TimeController::init();
+
+  Alarm::setAlarmHandler(alarmHandler);
+
   if (!FileController::init()) {
     while(true);
   }
 
-  Alarm::setAlarmHandler(alarmHandler);
-
-  SerialController::init();
-  TimeController::init();
   PasswordController::init();
   LCDController::init();
   LedAndBuzzerController::init();
@@ -52,10 +53,12 @@ void setup() {
   TemperatureController::init();
   PageController::init();
 
+/*
   TimeController::createAndAddAlarm(14, 10, true, 0);
   TimeController::createAndAddAlarm(14, 20, true, 0);
   TimeController::createAndAddAlarm(15, 40, true, 0);
   TimeController::createAndAddAlarm(15, 50, true, 0);
+  */
 
   PushButtonController::setListener(onSwitchHIGH, onSwitchLOW, 0);
   PushButtonController::update();

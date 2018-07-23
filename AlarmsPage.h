@@ -8,6 +8,7 @@
 #include "Alarm.h"
 
 #include "TimeController.h"
+#include "FileController.h"
 #include "PushButtonController.h"
 #include "LCDController.h"
 
@@ -101,6 +102,8 @@ void _alarmsPageOnButton4HIGHWhenEditing() {
     _alarmsPage->mSelectedAlarmIndex = 0;
     _alarmsPage->stopEditing();
     _alarmsPage->applyChangesOnIndexesAndPrint();
+
+    FileController::writeAlarmsToFile();
   }
 }
 
@@ -113,6 +116,8 @@ void _alarmsPageOnButton4HIGH() {
 
   _alarmsPage->mSelectedAlarmIndex = 0;
   _alarmsPage->applyChangesOnIndexesAndPrint();
+
+  FileController::writeAlarmsToFile();
 }
 
 void _alarmsPageOnButton5HIGH() {
