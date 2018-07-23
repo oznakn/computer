@@ -4,25 +4,20 @@
 #include "CallbackListener.h"
 #include "LinkedList.h"
 
-int _callbackControllerId = 0;
-
-int _callbackControllerIdCreator() {
-  return ++_callbackControllerId;
-}
-
 class CallbackController {
   private:
+    static int idCounter;
+    static int idCreator();
+
     int mIsEnabled = true;
     String mData = "";
-    CallbackListener * mCallbackListener;
-
-    void init();
+    CallbackListener* mCallbackListener;
 
   public:
-    int mIndex = _callbackControllerIdCreator();
+    int mIndex;
 
-    CallbackController(CallbackListener *);
-    CallbackController(CallbackListener *, String);
+    CallbackController(CallbackListener*);
+    CallbackController(CallbackListener*, String);
     void enable();
     void disable();
     CallbackListener* getCallbackListener();
@@ -35,21 +30,23 @@ class CallbackController {
     void runIfEnabled();
 };
 
-CallbackController::CallbackController(CallbackListener * callback) {
-  this->mCallbackListener = callback;
+int CallbackController::idCounter = 0;
 
-  this->init();
+int CallbackController::idCreator() {
+  return ++CallbackController::idCounter;
 }
 
-CallbackController::CallbackController(CallbackListener * callback, String data) {
+CallbackController::CallbackController(CallbackListener* callback) {
+  this->mCallbackListener = callback;
+
+  this->mIndex = CallbackController::idCreator();
+}
+
+CallbackController::CallbackController(CallbackListener* callback, String data) {
   this->mCallbackListener = callback;
   this->mData = data;
 
-  this->init();
-}
-
-void CallbackController::init() {
-
+  this->mIndex = CallbackController::idCreator();
 }
 
 void CallbackController::enable() {

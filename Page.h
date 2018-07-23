@@ -14,12 +14,12 @@ class Page {
     const static int SETTINGS_PAGE PROGMEM = 3;
 
     Page(PageChangeFunction*);
-    ~Page();
-    void start();
-    void stop();
-    void onEnable();
-    void onDisable();
-    void changePage(int);
+    virtual ~Page();
+    virtual void start();
+    virtual void stop();
+    virtual void onEnable();
+    virtual void onDisable();
+    virtual void changePage(int);
 };
 
 Page::Page(PageChangeFunction* pageChangeFunction) {

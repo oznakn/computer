@@ -3,60 +3,16 @@
 
 #include <LiquidCrystal.h>
 
-byte degreeChar[8] = {
-  B01110,
-  B01010,
-  B01110,
-  B00000,
-  B00000,
-  B00000,
-  B00000,
-};
-
-byte clockChar[8] = {
-  B00000,
-  B01110,
-  B10011,
-  B10101,
-  B10001,
-  B01110,
-  B00000,
-};
-
-byte doneChar[8] = {
-  B00000,
-  B00001,
-  B00010,
-  B10100,
-  B01000,
-  B00000,
-  B00000,
-};
-
-byte dropChar[8] = {
-  B00000,
-  B00100,
-  B01010,
-  B10001,
-  B10001,
-  B10001,
-  B01110,
-};
-
-byte rightArrowChar[8] = {
-  B00000,
-  B00100,
-  B00010,
-  B11111,
-  B00010,
-  B00100,
-  B00000,
-};
-
 typedef void (StateChangeListener) (bool);
 
 class LCDController {
   private:
+    const static byte DEGREE_CHAR[8];
+    const static byte CLOCK_CHAR[8];
+    const static byte DONE_CHAR[8];
+    const static byte DROP_CHAR[8];
+    const static byte RIGHT_ARROW_CHAR[8];
+
     const static int LCD_WIDTH PROGMEM = 20;
     const static int LCD_HEIGHT PROGMEM = 4;
 
@@ -69,7 +25,7 @@ class LCDController {
     const static int LCD_D7_PIN PROGMEM = 43;
 
     static bool isEnabled; // switch button
-    static LiquidCrystal * lcd;
+    static LiquidCrystal* lcd;
     static StateChangeListener* onEnableStateChangeListener;
 
     static int getMiddleCount(int);
@@ -107,6 +63,56 @@ class LCDController {
     static void setOnEnableStateChangeListener(StateChangeListener*);
 };
 
+const byte LCDController::DEGREE_CHAR[8] = {
+  B01110,
+  B01010,
+  B01110,
+  B00000,
+  B00000,
+  B00000,
+  B00000,
+};
+
+const byte LCDController::CLOCK_CHAR[8] = {
+  B00000,
+  B01110,
+  B10011,
+  B10101,
+  B10001,
+  B01110,
+  B00000,
+};
+
+const byte LCDController::DONE_CHAR[8] = {
+  B00000,
+  B00001,
+  B00010,
+  B10100,
+  B01000,
+  B00000,
+  B00000,
+};
+
+const byte LCDController::DROP_CHAR[8] = {
+  B00000,
+  B00100,
+  B01010,
+  B10001,
+  B10001,
+  B10001,
+  B01110,
+};
+
+const byte LCDController::RIGHT_ARROW_CHAR[8] = {
+  B00000,
+  B00100,
+  B00010,
+  B11111,
+  B00010,
+  B00100,
+  B00000,
+};
+
 bool LCDController::isEnabled = true;
 StateChangeListener* LCDController::onEnableStateChangeListener = NULL;
 LiquidCrystal * LCDController::lcd = new LiquidCrystal(LCDController::LCD_RS_PIN, LCDController::LCD_ENABLE_PIN, LCDController::LCD_D4_PIN, LCDController::LCD_D5_PIN, LCDController::LCD_D6_PIN, LCDController::LCD_D7_PIN);
@@ -116,11 +122,11 @@ void LCDController::init() {
 
   LCDController::lcd->begin(LCDController::LCD_WIDTH, LCDController::LCD_HEIGHT);
 
-  LCDController::lcd->createChar(LCDController::DEGREE_CHAR_CODE, degreeChar);
-  LCDController::lcd->createChar(LCDController::CLOCK_CHAR_CODE, clockChar);
-  LCDController::lcd->createChar(LCDController::DONE_CHAR_CODE, doneChar);
-  LCDController::lcd->createChar(LCDController::RIGHT_ARROW_CHAR_CODE, rightArrowChar);
-  LCDController::lcd->createChar(LCDController::DROP_CHAR_CODE, dropChar);
+  LCDController::lcd->createChar(LCDController::DEGREE_CHAR_CODE, LCDController::DEGREE_CHAR);
+  LCDController::lcd->createChar(LCDController::CLOCK_CHAR_CODE, LCDController::CLOCK_CHAR);
+  LCDController::lcd->createChar(LCDController::DONE_CHAR_CODE, LCDController::DONE_CHAR);
+  LCDController::lcd->createChar(LCDController::RIGHT_ARROW_CHAR_CODE, LCDController::RIGHT_ARROW_CHAR);
+  LCDController::lcd->createChar(LCDController::DROP_CHAR_CODE, LCDController::DROP_CHAR);
 
   LCDController::enable();
 }

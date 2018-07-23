@@ -5,9 +5,9 @@
 
 class TemperatureController {
   private:
-    static DHT * dht;
-
     const static int DHT_PIN PROGMEM = 48;
+
+    static DHT* dht;
 
   public:
     static void init();
@@ -16,13 +16,14 @@ class TemperatureController {
     static float getHumidity();
 };
 
-DHT * TemperatureController::dht = new DHT(TemperatureController::DHT_PIN, DHT22);
+DHT* TemperatureController::dht = new DHT(TemperatureController::DHT_PIN, DHT22);
 
 void TemperatureController::init() {
   TemperatureController::dht->begin();
 }
 
 void TemperatureController::update() {
+
 }
 
 float TemperatureController::getTemperature() {

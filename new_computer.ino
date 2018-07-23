@@ -11,7 +11,6 @@
 #include "PushButtonController.h"
 #include "FileController.h"
 #include "TemperatureController.h"
-#include "PasswordController.h"
 #include "PageController.h"
 
 void onSwitchHIGH() {
@@ -46,19 +45,11 @@ void setup() {
     while(true);
   }
 
-  PasswordController::init();
   LCDController::init();
   LedAndBuzzerController::init();
   PushButtonController::init();
   TemperatureController::init();
   PageController::init();
-
-/*
-  TimeController::createAndAddAlarm(14, 10, true, 0);
-  TimeController::createAndAddAlarm(14, 20, true, 0);
-  TimeController::createAndAddAlarm(15, 40, true, 0);
-  TimeController::createAndAddAlarm(15, 50, true, 0);
-  */
 
   PushButtonController::setListener(onSwitchHIGH, onSwitchLOW, 0);
   PushButtonController::update();
@@ -69,7 +60,6 @@ void setup() {
 void loop() {
   SerialController::update();
   TimeController::update();
-  PasswordController::update();
   LCDController::update();
   PushButtonController::update();
   LedAndBuzzerController::update();

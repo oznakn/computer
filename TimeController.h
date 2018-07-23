@@ -9,33 +9,6 @@
 #include "CallbackController.h"
 #include "Alarm.h"
 
-void _timeControllerWaitForSerial() {
-  while (!Serial.available()) {
-
-  }
-}
-
-int _timeControllerCompareAlarms(Alarm** pAlarm1, Alarm** pAlarm2) {
-  uint32_t value1, value2;
-  Alarm* alarm1 = (*pAlarm1);
-  Alarm* alarm2 = (*pAlarm2);
-
-  value1 = (alarm1->getHour() * 60) + alarm1->getMinute();
-  value2 = (alarm2->getHour() * 60) + alarm2->getMinute();
-
-  return value1 > value2 ? 1 : -1;
-}
-
-String _timeControllerTimePropToText(int value) {
-  String text = String(value);
-
-  if (value < 10) {
-    text = "0" + text;
-  }
-
-  return text;
-}
-
 class TimeController {
   private:
     static LinkedList<CallbackController*>* perSecondCallbackControllerList;
@@ -44,6 +17,9 @@ class TimeController {
     static LinkedList<Alarm*>* alarmList;
     static Timer* timer;
 
+    static String getTimePropAsText(int);
+    static void waitForSerial();
+    static int compareAlarms(Alarm**, Alarm**);
     static void perSecondTimerCallback();
     static void perMinuteTimerCallback();
 
@@ -66,12 +42,12 @@ class TimeController {
     static void pulse(uint8_t, unsigned long, uint8_t);
     static void oscillate(uint8_t, unsigned long, uint8_t);
     static void after(unsigned long, CallbackListener*);
+    static void sortAlarmList();
     static void fetchTime();
     static String getFullTimeText(bool = false);
     static String getTimeText();
     static String getDateText(bool = false);
     static uint8_t getDayOfWeek();
-    static void sortAlarmList();
 };
 
 Timer * TimeController::timer = new Timer();
@@ -214,33 +190,60 @@ LinkedList<Alarm*>* TimeController::getAlarmList() {
   return TimeController::alarmList;
 }
 
+int TimeController::compareAlarms(Alarm** pAlarm1, Alarm** pAlarm2) {
+  uint32_t value1, value2;
+  Alarm* alarm1 = (*pAlarm1);
+  Alarm* alarm2 = (*pAlarm2);
+
+  value1 = (alarm1->getHour() * 60) + alarm1->getMinute();
+  value2 = (alarm2->getHour() * 60) + alarm2->getMinute();
+
+  return value1 > value2 ? 1 : -1;
+}
+
 void TimeController::sortAlarmList() {
-  TimeController::alarmList->sort(_timeControllerCompareAlarms);
+  TimeController::alarmList->sort(TimeController::compareAlarms);
 }
 
 int TimeController::getAlarmCount() {
   return TimeController::alarmList->size();
 }
 
+String TimeController::getTimePropAsText(int value) {
+    String text = String(value);
+
+  if (value < 10) {
+    text = "0" + text;
+  }
+
+  return text;
+}
+
+void TimeController::waitForSerial() {
+  while (!Serial.available()) {
+
+  }
+}
+
 void TimeController::fetchTime() {
   Serial.println("Enter Year");
-  _timeControllerWaitForSerial();
+  TimeController::waitForSerial();
   int year = Serial.readString().toInt();
 
   Serial.println("Enter Month");
-  _timeControllerWaitForSerial();
+  TimeController::waitForSerial();
   int month = Serial.readString().toInt();
 
   Serial.println("Enter Day");
-  _timeControllerWaitForSerial();
+  TimeController::waitForSerial();
   int day = Serial.readString().toInt();
 
   Serial.println("Enter Hour");
-  _timeControllerWaitForSerial();
+  TimeController::waitForSerial();
   int hour = Serial.readString().toInt();
 
   Serial.println("Enter Minute");
-  _timeControllerWaitForSerial();
+  TimeController::waitForSerial();
   int minute = Serial.readString().toInt();
 
   setTime(hour , minute , 0 , day , month , year);
@@ -255,11 +258,11 @@ String TimeController::getFullTimeText(bool cropYear) {
 }
 
 String TimeController::getTimeText() {
-  return _timeControllerTimePropToText(hour()) + ":" + _timeControllerTimePropToText(minute()) + ":" + _timeControllerTimePropToText(second());
+  return TimeController::getTimePropAsText(hour()) + ":" + TimeController::getTimePropAsText(minute()) + ":" + TimeController::getTimePropAsText(second());
 }
 
 String TimeController::getDateText(bool cropYear) {
-  String text = _timeControllerTimePropToText(day()) + "." + _timeControllerTimePropToText(month()) + ".";
+  String text = TimeController::getTimePropAsText(day()) + "." + TimeController::getTimePropAsText(month()) + ".";
 
   if (cropYear) text += String(year()).substring(2, 4);
   else text += year();

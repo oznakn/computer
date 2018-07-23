@@ -6,24 +6,15 @@
 
 typedef void (AlarmHandler) (int);
 
-String _alarmTimePropToText(int value) {
-  String text = String(value);
-
-  if (value < 10) {
-    text = "0" + text;
-  }
-
-  return text;
-}
-
-int _alarmId = 0;
-
-int _alarmIdCreator() {
-  return ++_alarmId;
-}
-
 class Alarm {
   private:
+    static int idCounter;
+    static AlarmHandler* alarmHandler;
+
+    static int idCreator();
+    static String getTimePropAsText(int);
+
+    int mIndex;
     int mHour;
     int mMinute;
     bool mIsEnabled = true;
@@ -31,7 +22,6 @@ class Alarm {
     int mBuzzerMode = 0;
 
   public:
-    static AlarmHandler* alarmHandler;
     static void setAlarmHandler(AlarmHandler*);
 
     Alarm(int, int, bool, int);
@@ -51,14 +41,27 @@ class Alarm {
     void setBuzzerMode(int);
     int getBuzzerMode();
     void removeFromList(LinkedList<Alarm*>*);
-
-    int mIndex = _alarmIdCreator();
 };
 
+int Alarm::idCounter = 0;
 AlarmHandler* Alarm::alarmHandler = NULL;
+
+int Alarm::idCreator() {
+  return ++Alarm::idCounter;
+}
 
 void Alarm::setAlarmHandler(AlarmHandler* alarmHandler) {
   Alarm::alarmHandler = alarmHandler;
+}
+
+String Alarm::getTimePropAsText(int value) {
+  String text = String(value);
+
+  if (value < 10) {
+    text = "0" + text;
+  }
+
+  return text;
 }
 
 Alarm::Alarm(int hour, int minute, bool oneTime, int buzzerMode) {
@@ -66,6 +69,8 @@ Alarm::Alarm(int hour, int minute, bool oneTime, int buzzerMode) {
   this->mMinute = minute;
   this->mOneTime = oneTime;
   this->mBuzzerMode = buzzerMode;
+
+  this->mIndex = Alarm::idCreator();
 }
 
 int Alarm::getHour() {
@@ -100,11 +105,11 @@ bool Alarm::runIfNeccesary(int hour, int minute) {
 }
 
 String Alarm::getHourAsText() {
-  return _alarmTimePropToText(this->getHour());
+  return Alarm::getTimePropAsText(this->getHour());
 }
 
 String Alarm::getMinuteAsText() {
-  return _alarmTimePropToText(this->getMinute());
+  return Alarm::getTimePropAsText(this->getMinute());
 }
 
 String Alarm::getAsText() {

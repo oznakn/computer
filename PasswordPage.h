@@ -10,7 +10,6 @@
 #include "PushButtonController.h"
 #include "FileController.h"
 #include "TemperatureController.h"
-#include "PasswordController.h"
 
 #include "Page.h"
 
@@ -36,7 +35,9 @@ void _passwordPageRefreshPasswordOnScreen() {
 }
 
 void _passwordPagePasswordCheck() {
-  if (PasswordController::tryPassword(_passwordPage->mPassword)) {
+  if (FileController::password.equals(_passwordPage->mPassword)) {
+    _passwordPage->mPassword = "";
+
     _passwordPage->changePage(1);
   }
   else {

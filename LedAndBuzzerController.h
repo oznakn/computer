@@ -55,6 +55,7 @@ void LedAndBuzzerController::init() {
 }
 
 void LedAndBuzzerController::update() {
+
 }
 
 void LedAndBuzzerController::setRedLed(int state) {
